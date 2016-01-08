@@ -22,14 +22,16 @@
         <form id="financing-form" class="form-horizontal">
             <div class="form-group">
                 <label class="control-label col-sm-3">Investment Amount</label>
-                <div class="col-sm-6">
+                <div class="col-sm-6 input-group">
                     <input type="number" class="form-control" id="investment-amount" placeholder="Investment Amount">
+                    <span class="input-group-addon">mm</span>
                 </div>
             </div>
             <div class="form-group">
                 <label class="control-label col-sm-3">Valuation</label>
-                <div class="col-sm-6">
+                <div class="col-sm-6 input-group">
                     <input type="number" class="form-control" id="valuation" placeholder="Valuation">
+                    <span class="input-group-addon">mm</span>
                 </div>
             </div>
             <div class="form-group">
@@ -47,10 +49,10 @@
                 <label class="control-label col-sm-3">Liquidation Preference</label>
                 <div class="col-sm-6">
                     <label class="radio-inline">
-                        <input type="radio" name="liquidation-preference" checked="checked" value="pari-passu">Pari Passu
+                        <input type="radio" name="liquidation-preference-type" checked="checked" value="pari">Pari Passu
                     </label>
                     <label class="radio-inline">
-                        <input type="radio" name="liquidation-preference" value="stacked">Stacked (Senior)
+                        <input type="radio" name="liquidation-preference-type" value="stacked">Stacked (Senior)
                     </label>
                 </div>
             </div>
