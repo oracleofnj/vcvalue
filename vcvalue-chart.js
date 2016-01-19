@@ -5,12 +5,16 @@ var vcCharts = (function() {
         formatMillion = function(x) { return '$' + formatNumber(x / 1e6) + "M"; };
         formatThousand = function(x) { return '$' + formatNumber(x / 1e3) + "k"; };
 
-    function formatAbbreviation(x) {
+    function formatProceeds(x) {
         var v = Math.abs(x);
-        return (v >= .9995e12 ? formatTrillion
-                : v >= .9995e9 ? formatBillion
-                : v >= .9995e6 ? formatMillion
+        return (v >= 0.9995e12 ? formatTrillion
+                : v >= 0.9995e9 ? formatBillion
+                : v >= 0.9995e6 ? formatMillion
                 : formatThousand)(x);
+    }
+
+    function formatMultiple(y) {
+        return y.toFixed(1) + 'X';
     }
 
     var baseChart = {
@@ -29,12 +33,12 @@ var vcCharts = (function() {
             this.xAxis = d3.svg.axis()
                 .scale(this.x)
                 .orient('bottom')
-                .ticks(10,formatAbbreviation);
+                .ticks(10,formatProceeds);
 
             this.yAxis = d3.svg.axis()
                 .scale(this.y)
                 .orient('left')
-                .ticks(5,formatAbbreviation);
+                .ticks(5,formatMultiple);
 
             this.yGrid = d3.svg.axis()
                 .scale(this.y)
@@ -91,12 +95,13 @@ var vcCharts = (function() {
     };
     function waterfallPlot(chartID) {
         var chart = Object.create(baseChart);
+        chart.color = d3.scale.category10();
         chart.line = d3.svg.line()
-            .x(function(d) {return chart.x(1 + d.totalProceeds);})
-            .y(function(d) {return chart.y(1 + d.individualProceeds);});
+            .x(function(d) {return chart.x(d.totalProceeds);})
+            .y(function(d) {return chart.y(0.01 + d.individualProceeds);});
         chart.customResize = function() {
-            this.x.range([0,0.1*this.width,0.75*this.width,this.width]);
-            this.y.range([this.height,0.9*this.height,0.25*this.height,0]);
+            this.x.range([0, 0.1 * this.width, this.width]);
+            this.y.range([this.height, 0.75 * this.height, 0]);
             this.chart.selectAll('.line').attr('d', chart.line);
             this.gXAxis.call(this.xAxis);
             this.gYAxis.call(this.yAxis);
@@ -107,26 +112,29 @@ var vcCharts = (function() {
         }
         chart.customDraw = function(proceeds) {
             var xMax = d3.max(proceeds, this.customXDomain);
+            var yMin = d3.min(proceeds, this.customYMin);
             var yMax = d3.max(proceeds, this.customYMax);
-            this.x.domain([1,1e6,1e8,xMax]);
-            this.y.domain([1,1e6,1e8,yMax]);
+            this.x.domain([1,1e6,xMax]);
+            this.y.domain([0.01,1,yMax]);
             this.chart.selectAll('.line').remove();
             this.chart.append('path')
                 .datum(proceeds.map(function(d) {
                     return {totalProceeds: d.totalProceeds, individualProceeds: d.commonProceeds};
                 }))
-                .attr('class', 'line');
+                .attr('class', 'line')
+                .style('stroke', chart.color(-1));
             proceeds[0].preferredProceeds.forEach(function(a,i,c) {
                 this.chart.append('path')
                     .datum(proceeds.map(function(d) {
                         return {totalProceeds: d.totalProceeds, individualProceeds: d.preferredProceeds[i].proceeds};
                     }))
-                    .attr('class', 'line');
+                    .attr('class', 'line')
+                    .style('stroke', chart.color(i));
             }, this);
         }
-        chart.customXDomain = function(d) {return 1 + d.totalProceeds};
-        chart.customYMin = function(d) {return 1 + Math.min(1+d.commonProceeds, d3.min(d.preferredProceeds, function(p) {return p.proceeds}));};
-        chart.customYMax = function(d) {return 1 + Math.max(1+d.commonProceeds, d3.max(d.preferredProceeds, function(p) {return p.proceeds}));};
+        chart.customXDomain = function(d) {return d.totalProceeds};
+        chart.customYMin = function(d) {return 0.01 + Math.min(d.commonProceeds, d3.min(d.preferredProceeds, function(p) {return p.proceeds}));};
+        chart.customYMax = function(d) {return 0.01 + Math.max(d.commonProceeds, d3.max(d.preferredProceeds, function(p) {return p.proceeds}));};
         chart.init(chartID, {gridlines: true});
         return chart;
     }

@@ -2,13 +2,15 @@ var theApp = (function() {
     "use strict";
     var payoffChart;
     function proceedsChartData(rounds) {
-        return d3.range(0,35,0.1).map(function(ln2x) {
+        return d3.range(0,40,0.1).map(function(ln2x) {
             var totalProceeds = Math.pow(2,ln2x);
             var proceeds = vcComps.liquidationValues(rounds, totalProceeds);
             return {
                 totalProceeds: totalProceeds,
-                commonProceeds: proceeds.commonProceeds,
-                preferredProceeds: proceeds.preferredProceeds
+                commonProceeds: proceeds.commonProceeds / 1e6,
+                preferredProceeds: proceeds.preferredProceeds.map(function(d,i) {
+                    return {proceeds: d.proceeds/rounds[i].invAmt, convert: d.convert};
+                })
             };
         });
     };
